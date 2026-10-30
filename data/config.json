@@ -1,0 +1,126 @@
+{
+ "team": "WIL",
+ "weight_speed": 0.6,
+ "team_names": {
+  "DAR": "Dartmouth",
+  "UVM": "Vermont",
+  "MID": "Middlebury",
+  "UNH": "New Hampshire",
+  "CBC": "Colby",
+  "SMC": "Saint Michael's",
+  "WIL": "Williams",
+  "HAR": "Harvard",
+  "BAT": "Bates",
+  "BC": "Boston College",
+  "SLU": "St. Lawrence",
+  "PSU": "Plymouth State",
+  "CSC": "Castleton",
+  "BOW": "Bowdoin"
+ },
+ "roster_season": "2026-27",
+ "roster": [
+  {
+   "name": "Ashley Anderson",
+   "key": "anderson ashley",
+   "year": "So",
+   "gender": "W"
+  },
+  {
+   "name": "Simon Baron",
+   "key": "baron simon",
+   "year": "Jr",
+   "gender": "M"
+  },
+  {
+   "name": "Chas Benyik",
+   "key": "benyik chas",
+   "year": "So",
+   "gender": "M"
+  },
+  {
+   "name": "Alexa Boden",
+   "key": "alexa boden",
+   "year": "1st",
+   "gender": "W"
+  },
+  {
+   "name": "Caden Burns",
+   "key": "burns caden",
+   "year": "So",
+   "gender": "M"
+  },
+  {
+   "name": "Magnolia Conacher",
+   "key": "conacher magnolia",
+   "year": "So",
+   "gender": "W"
+  },
+  {
+   "name": "Evan Cook",
+   "key": "cook evan",
+   "year": "Sr",
+   "gender": "M"
+  },
+  {
+   "name": "Taylor Dulaney",
+   "key": "dulaney taylor",
+   "year": "Jr",
+   "gender": "M"
+  },
+  {
+   "name": "Jack Hunter",
+   "key": "hunter jack",
+   "year": "So",
+   "gender": "M"
+  },
+  {
+   "name": "Charlie Koenig",
+   "key": "charlie koenig",
+   "year": "Jr",
+   "gender": "W"
+  },
+  {
+   "name": "Chloe Lathrop",
+   "key": "chloe lathrop",
+   "year": "Sr",
+   "gender": "W"
+  },
+  {
+   "name": "Mackenzie Leach",
+   "key": "leach mackenzie",
+   "year": "Sr",
+   "gender": "W"
+  },
+  {
+   "name": "Harry Luxton",
+   "key": "harry luxton",
+   "year": "1st",
+   "gender": "M"
+  },
+  {
+   "name": "Jack Luxton",
+   "key": "jack luxton",
+   "year": "So",
+   "gender": "M"
+  },
+  {
+   "name": "Clementine Mannes",
+   "key": "clementine mannes",
+   "year": "Jr",
+   "gender": "W"
+  },
+  {
+   "name": "Alden Rhodes",
+   "key": "alden rhodes",
+   "year": "1st",
+   "gender": "M"
+  },
+  {
+   "name": "William Zurbay",
+   "key": "william zurbay",
+   "year": "Jr",
+   "gender": "M"
+  }
+ ],
+ "roster_source": "Eph Scout roster (https://claude.ai/artifact/XEGE9yTjYntohf2oWJrEVX)"
+}

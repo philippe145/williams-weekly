@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Williams College alpine skiing vs the EISA league: official standings, a 60/40 speed x finish index, points left on the hill and every Eph's results.">
+<title>Williams College Weekly Analysis</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%224%22 y=%221%22 width=%224%22 height=%2214%22 fill=%22%23a8780a%22/%3E%3Crect x=%229%22 y=%221%22 width=%224%22 height=%2214%22 fill=%22%234f1f82%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Narrow:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: scoreboard header, tab strip, one working view at a time. Purple = Williams, gold = the official EISA scoring lens */
+:root{
+  --snow:#f5f4f8; --panel:#ffffff; --ink:#18151f; --muted:#5f5a6b; --line:#dcd8e4; --soft:#efedf4;
+  --eph:#4f1f82; --ephsoft:#ece4f6; --gold:#a8780a; --goldsoft:#fbf1d6;
+  --good:#1d7a4a; --bad:#b3261e; --other:#b9b3c6;
+  --display:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
+  --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --snow:#121018; --panel:#1b1824; --ink:#ece9f2; --muted:#a29cb0; --line:#322d3f; --soft:#221e2c;
+  --eph:#b58cf0; --ephsoft:#2e2342; --gold:#e8be4f; --goldsoft:#33290f; --good:#4cc185; --bad:#ff7b72; --other:#5a536a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --snow:#121018; --panel:#1b1824; --ink:#ece9f2; --muted:#a29cb0; --line:#322d3f; --soft:#221e2c;
+  --eph:#b58cf0; --ephsoft:#2e2342; --gold:#e8be4f; --goldsoft:#33290f; --good:#4cc185; --bad:#ff7b72; --other:#5a536a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--snow);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;border-bottom:4px solid var(--eph);padding-bottom:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1;margin:0;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+h1 .bar{display:inline-block;width:.22em;height:.82em;background:var(--gold);margin-right:.25em;vertical-align:-.05em}
+h2{font-family:var(--display);font-weight:700;font-size:25px;margin:0;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:18px;margin:0;text-transform:uppercase;letter-spacing:.03em}
+.sub{color:var(--muted);font-size:13px}
+.label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num,td.n,th.n{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px;text-align:right}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0 20px}
+nav.tabs a{font-family:var(--display);font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:4px;border:1px solid transparent}
+nav.tabs a[aria-current="page"]{color:var(--ink);background:var(--panel);border-color:var(--line);box-shadow:inset 0 -3px 0 var(--eph)}
+a{color:var(--eph)}
+nav.tabs a:focus-visible,button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--eph);outline-offset:2px}
+select,button{font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 10px}
+button{cursor:pointer;font-weight:600}
+button.primary{background:var(--eph);color:#fff;border-color:var(--eph)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;border-radius:0;background:var(--panel);color:var(--muted);padding:6px 12px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--snow)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;min-width:0}
+.card.eph{border-top:5px solid var(--eph)}.card.gold{border-top:5px solid var(--gold)}
+.mt{margin-top:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:14px 0}
+.stat .v{font-family:var(--display);font-size:30px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .k{font-size:12px;color:var(--muted)}
+.tbl{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--soft);padding:6px 8px;white-space:nowrap}
+tr.wil td{background:var(--ephsoft)} tr.wil td:first-child{box-shadow:inset 3px 0 0 var(--eph)}
+tr.me td{font-weight:700}
+tbody tr[data-racer]{cursor:pointer}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.up{color:var(--good);border-color:currentColor}.pill.down{color:var(--bad);border-color:currentColor}
+.pill.eph{color:var(--eph);border-color:var(--eph)}.pill.gold{color:var(--gold);border-color:var(--gold)}
+ul.obs{margin:10px 0 0;padding-left:18px}ul.obs li{margin:5px 0;max-width:72ch}
+.empty{padding:40px 18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:6px;background:var(--panel)}
+svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
+svg .gridl{stroke:var(--soft)} svg .axis{stroke:var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.racehead{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0 4px}
+.note{font-size:13px;color:var(--muted);max-width:78ch}
+p{max-width:78ch}
+.status{font-size:12px;color:var(--muted)}
+.ast{color:var(--gold);font-weight:700}
+.heat td.c{text-align:center;font-family:var(--mono);font-size:12.5px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="label">EISA alpine · slalom &amp; giant slalom · Ephs vs the league</div>
+      <h1><span class="bar"></span>Williams College Weekly Analysis</h1>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="label" for="season">Season</label>
+      <select id="season"></select>
+      <span class="status" id="status">Connecting to the race database…</span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Views">
+    <a href="#team">Williams</a>
+    <a href="#league">League standings</a>
+    <a href="#racers">Ephs</a>
+    <a href="#races">Race reports</a>
+    <a href="#courses">Courses</a>
+    <a href="#method">Method &amp; data</a>
+  </nav>
+
+  <main id="view"><div class="empty">The race database is loading. Each EISA carnival slalom and GS appears here once it is added.</div></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+const S={races:[],carnivals:[],config:null,season:null,weight:0.6,lens:'all',raceId:null,racer:null,loaded:false};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtT=t=>{if(t==null)return '';const m=Math.floor(t/60),s=(t-m*60);return m?`${m}:${s.toFixed(2).padStart(5,'0')}`:s.toFixed(2)};
+const pct=v=>v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
+const p1=v=>v==null?'–':(Math.round(v*10)/10).toString();
+const dd=d=>{const [y,m,da]=d.split('-');return new Date(+y,+m-1,+da).toLocaleDateString('en-US',{month:'short',day:'numeric'})};
+const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
+const median=a=>{if(!a.length)return null;const s=[...a].sort((p,q)=>p-q),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const TEAM=()=> (S.config&&S.config.team)||'WIL';
+const tname=t=>(S.config&&S.config.team_names&&S.config.team_names[t])||t;
+const NOTEAM=['GUEST','?','BOW'];
+const LENSES=[['all','All alpine'],['SL-W','Women SL'],['GS-W','Women GS'],['SL-M','Men SL'],['GS-M','Men GS']];
+const lensOK=(rc,l)=>l==='all'||l===rc.disc+'-'+rc.gender;
+const discName=d=>d==='SL'?'slalom':'giant slalom';
+const gName=g=>g==='W'?'women':'men';
+const PTS=i=>i<=9?[50,47,44,41,39,37,35,33,31][i-1]:Math.max(40-i,0);
+
+function rankMap(arr){const o=[...arr].sort((a,b)=>a.v-b.v);const m=new Map();let pv=null,pr=0;o.forEach((x,i)=>{if(x.v!==pv){pr=i+1;pv=x.v}m.set(x.i,pr)});return m}
+
+/* EISA points for a hypothetical field (used only for the points-left estimate) */
+function eisaPoints(list){ // list: [{team,ns,tot}] sorted or not; returns Map index->pts
+  const o=list.map((r,i)=>({...r,i})).filter(r=>r.tot!=null&&!r.ns&&!NOTEAM.includes(r.team)).sort((a,b)=>a.tot-b.tot);
+  const cnt={},out=new Map();let slot=0,i=0;
+  while(i<o.length){let j=i;while(j+1<o.length&&o[j+1].tot===o[i].tot)j++;
+    const grp=o.slice(i,j+1).filter(r=>(cnt[r.team]||0)<3);
+    if(grp.length){let s=0;for(let k=1;k<=grp.length;k++)s+=PTS(slot+k);slot+=grp.length;grp.forEach(r=>{out.set(r.i,s/grp.length);cnt[r.team]=(cnt[r.team]||0)+1})}
+    i=j+1}
+  return out;
+}
+
+function computeRace(doc){
+  const rs=doc.rows.map((a,i)=>{const r={};doc.cols.forEach((c,j)=>r[c]=a[j]);r.i=i;return r});
+  rs.forEach(r=>{r.finished=r.st==null&&r.tot!=null;r.started=!(r.st==='DNS1');r.clean=r.finished||r.st==='DNQ';r.status=r.finished?'Ranked':r.st});
+  const fin=rs.filter(r=>r.finished);
+  [1,2].forEach(k=>{const v=fin.filter(r=>r['r'+k]!=null).map(r=>({i:r.i,v:r['r'+k]}));if(!v.length)return;const best=Math.min(...v.map(x=>x.v));const m=rankMap(v);
+    fin.forEach(r=>{const t=r['r'+k];if(t!=null){r['r'+k+'_rank']=m.get(r.i);r['r'+k+'_gap']=(t/best-1)*100}})});
+  let winner=null;
+  if(fin.length){const best=Math.min(...fin.map(r=>r.tot));const eis=fin.filter(r=>!NOTEAM.includes(r.team));
+    const srt=[...fin].sort((a,b)=>a.tot-b.tot);winner=srt.find(r=>!NOTEAM.includes(r.team))||srt[0];
+    fin.forEach(r=>{r.gap=(r.tot/best-1)*100;r.gap_s=r.tot-best;r.speed=best/r.tot*100;r.place=1+eis.filter(x=>x.tot<r.tot).length;r.guest=NOTEAM.includes(r.team)});
+    const m1=rankMap(fin.map(r=>({i:r.i,v:r.r1})));fin.forEach(r=>{if(r.r1!=null)r.gained=m1.get(r.i)-(1+fin.filter(x=>x.tot<r.tot).length)});
+  }
+  const tp={};rs.forEach(r=>{if(r.pts)tp[r.team]=(tp[r.team]||0)+r.pts});
+  const trank=rankMap(Object.entries(tp).map(([t,v])=>({i:t,v:-v})));
+  return Object.assign({},doc,{R:rs,starters:rs.filter(r=>r.started).length,finishers:fin.length,winner,teamPts:tp,teamRank:trank,
+    eisaFinishers:fin.filter(r=>!NOTEAM.includes(r.team)).length});
+}
+
+function seasonRaces(){return S.races.filter(r=>r.season===S.season).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id))}
+function seasonCarnivals(){const order=[...new Set(seasonRaces().map(r=>r.carnival))];return order.map(c=>({c,races:seasonRaces().filter(r=>r.carnival===c),doc:S.carnivals.find(x=>x.season===S.season&&x.carnival===c)}))}
+function teamsInSeason(){const s=new Set();seasonRaces().forEach(rc=>rc.R.forEach(r=>{if(!NOTEAM.includes(r.team))s.add(r.team)}));return [...s]}
+
+/* official cumulative standings (sum of EISA points) */
+function standings(lens){
+  const T={};teamsInSeason().forEach(t=>T[t]={team:t,pts:0,byC:{},approx:false});
+  seasonRaces().filter(rc=>lensOK(rc,lens)).forEach(rc=>{Object.keys(T).forEach(t=>{const v=rc.teamPts[t]||0;T[t].pts+=v;T[t].byC[rc.carnival]=(T[t].byC[rc.carnival]||0)+v;if(!rc.points_official)T[t].approx=true})});
+  const out=Object.values(T).filter(x=>x.pts>0||seasonRaces().some(rc=>rc.R.some(r=>r.team===x.team))).sort((a,b)=>b.pts-a.pts);
+  const rk=rankMap(out.map(x=>({i:x.team,v:-x.pts})));out.forEach(x=>x.rank=rk.get(x.team));return out;
+}
+
+/* speed x finish index */
+function index(lens,w){
+  const C={};const get=t=>C[t]=C[t]||{starts:0,clean:0,fin:0,races:[],racers:new Set()};
+  seasonRaces().filter(rc=>lensOK(rc,lens)).forEach(rc=>{
+    const per={},entered=new Set();
+    rc.R.forEach(r=>{if(!r.started||NOTEAM.includes(r.team))return;const c=get(r.team);c.starts++;if(r.clean)c.clean++;if(r.finished){c.fin++;(per[r.team]=per[r.team]||[]).push(r.speed)}c.racers.add(r.key);entered.add(r.team)});
+    entered.forEach(t=>{const top=(per[t]||[]).sort((a,b)=>b-a).slice(0,3);while(top.length<3)top.push(0);get(t).races.push(avg(top))});
+  });
+  const out=Object.entries(C).filter(([t,v])=>v.starts>=6).map(([t,v])=>{const sp=avg(v.races),fr=100*v.clean/v.starts;return {team:t,starts:v.starts,racers:v.racers.size,speed:sp,finish:fr,ranked:100*v.fin/v.starts,score:w*sp+(1-w)*fr}});
+  out.sort((a,b)=>b.score-a.score);out.forEach((x,i)=>x.rank=i+1);return out;
+}
+
+/* points left on the hill: a team's DNF/DSQ racers placed at their season median speed in that discipline */
+function racerMedianSpeed(key,disc,excludeId){const v=[];seasonRaces().forEach(rc=>{if(rc.disc!==disc||rc.id===excludeId)return;const r=rc.R.find(x=>x.key===key&&x.finished);if(r)v.push(r.speed)});return v.length?median(v):null}
+function pointsLeft(team,rc){
+  const best=rc.winner?Math.min(...rc.R.filter(r=>r.finished).map(r=>r.tot)):null;if(!best)return {gain:0,used:[],nobasis:[]};
+  const used=[],nobasis=[];
+  const list=rc.R.map(r=>({team:r.team,ns:r.ns,tot:r.finished?r.tot:null,key:r.key,name:r.name,st:r.st}));
+  list.forEach(r=>{if(r.team===team&&!r.ns&&['DNF1','DNF2','DSQ1','DSQ2'].includes(r.st)){const ms=racerMedianSpeed(r.key,rc.disc,rc.id);if(ms){r.tot=best/(ms/100);used.push({name:r.name,st:r.st,speed:ms})}else nobasis.push({name:r.name,st:r.st})}});
+  if(!used.length)return {gain:0,used,nobasis};
+  const p=eisaPoints(list);let est=0;list.forEach((r,i)=>{if(r.team===team&&p.get(i))est+=p.get(i)});
+  return {gain:Math.max(0,est-(rc.teamPts[team]||0)),est,used,nobasis};
+}
+
+function racerRows(key){const out=[];seasonRaces().forEach(rc=>{const r=rc.R.find(x=>x.key===key&&x.team===TEAM());if(r)out.push({rc,r})});return out}
+function teamRacers(){const m=new Map();seasonRaces().forEach(rc=>rc.R.forEach(r=>{if(r.team===TEAM()&&!m.has(r.key))m.set(r.key,{key:r.key,name:r.name,gender:rc.gender})}));return [...m.values()]}
+function rosterInfo(key){const ro=(S.config&&S.config.roster)||[];return ro.find(x=>x.key===key)}
+
+/* ---------- views ---------- */
+function vTeam(){
+  const T=TEAM();const carn=seasonCarnivals();if(!carn.length)return empty('No carnivals in this season yet.');
+  const st=standings('all'),me=st.find(x=>x.team===T);
+  const sl=['SL-W','SL-M','GS-W','GS-M'];
+  const cols=sl.map(l=>({l,s:standings(l)}));
+  const idx=index('all',S.weight),mi=idx.find(x=>x.team===T);
+  const left=carn.flatMap(c=>c.races.map(rc=>({rc,pl:pointsLeft(T,rc)})));
+  const leftTot=left.reduce((a,x)=>a+x.pl.gain,0);
+  const actual=me?me.pts:0;
+  const placeAll=me?me.rank:null;
+  const rows=carn.map(c=>{const byL={};c.races.forEach(rc=>byL[rc.disc+'-'+rc.gender]=rc);
+    const alp=c.races.reduce((a,rc)=>a+(rc.teamPts[T]||0),0);
+    const teamsAlp={};c.races.forEach(rc=>Object.entries(rc.teamPts).forEach(([t,v])=>teamsAlp[t]=(teamsAlp[t]||0)+v));
+    const ar=rankMap(Object.entries(teamsAlp).map(([t,v])=>({i:t,v:-v}))).get(T);
+    const off=c.doc&&c.doc.official&&c.doc.teams&&c.doc.teams[T];
+    const nteams=c.doc&&c.doc.official?Object.keys(c.doc.teams).length:null;
+    return {c,byL,alp,ar,nAlp:Object.keys(teamsAlp).length,overall:off?off.place:null,nteams,approx:c.races.some(rc=>!rc.points_official)}});
+  const obs=[];
+  const legPts=cols.map(x=>({l:x.l,me:x.s.find(y=>y.team===T),n:x.s.length}));
+  const bestLeg=[...legPts].filter(x=>x.me).sort((a,b)=>a.me.rank-b.me.rank)[0],worstLeg=[...legPts].filter(x=>x.me).sort((a,b)=>b.me.rank-a.me.rank)[0];
+  if(bestLeg)obs.push(`Strongest scoring leg: ${labelLens(bestLeg.l)}, ${ordinal(bestLeg.me.rank)} of ${bestLeg.n} teams on cumulative EISA points (${p1(bestLeg.me.pts)}). Weakest: ${labelLens(worstLeg.l)}, ${ordinal(worstLeg.me.rank)} (${p1(worstLeg.me.pts)}).`);
+  if(mi){const sr=[...idx].sort((a,b)=>b.speed-a.speed).findIndex(x=>x.team===T)+1,fr=[...idx].sort((a,b)=>b.finish-a.finish).findIndex(x=>x.team===T)+1;
+    obs.push(`On the speed × finish index Williams ranks ${ordinal(mi.rank)} of ${idx.length}: ${ordinal(sr)} on speed (${mi.speed.toFixed(1)}) and ${ordinal(fr)} on finishing (${mi.finish.toFixed(0)}% clean runs). ${fr>sr?'Finishing, not speed, is the bigger gap to the teams above.':fr<sr?'Speed, more than finishing, separates Williams from the teams above.':'Speed and finishing hold Williams back about equally.'}`)}
+  if(leftTot>0)obs.push(`Estimated points left on the hill through DNFs and DSQs: about ${Math.round(leftTot)}, against ${p1(actual)} scored. This is a model estimate (each racer placed at their own median speed in that discipline), not a result.`);
+  const thin=carn.flatMap(c=>c.races).filter(rc=>Object.prototype.hasOwnProperty.call(rc.teamPts,T)?rc.R.filter(r=>r.team===T&&r.pts).length<3:true);
+  obs.push(`Williams had three scorers in ${carn.flatMap(c=>c.races).length-thin.length} of ${carn.flatMap(c=>c.races).length} races; EISA counts each team's best three, so every race with fewer than three finishers in the points is a scoring slot left empty.`);
+  return `<div class="stats">
+      <div class="stat"><div class="v">${placeAll?ordinal(placeAll):'–'}</div><div class="k">cumulative alpine EISA points rank (of ${st.length})</div></div>
+      <div class="stat"><div class="v">${p1(actual)}</div><div class="k">alpine EISA points, ${esc(S.season)}</div></div>
+      <div class="stat"><div class="v">${mi?ordinal(mi.rank):'–'}</div><div class="k">speed × finish index (${Math.round(S.weight*100)}/${Math.round(100-S.weight*100)})</div></div>
+      <div class="stat"><div class="v">${mi?mi.finish.toFixed(0)+'%':'–'}</div><div class="k">clean runs (finished or made the run-2 cut)</div></div>
+      <div class="stat"><div class="v">≈${Math.round(leftTot)}</div><div class="k">points left on the hill (estimate)</div></div>
+    </div>
+    <section class="card eph"><h2>Carnival by carnival</h2>
+      <p class="note">EISA alpine points by leg, with the team's rank among the teams that raced that leg. Overall = the official carnival team place, alpine and Nordic combined.</p>
+      <div class="tbl"><table><thead><tr><th>Carnival</th>${sl.map(l=>`<th class="n">${labelLens(l)}</th>`).join('')}<th class="n">Alpine</th><th class="n">Overall</th></tr></thead><tbody>
+      ${rows.map(x=>`<tr><td>${esc(x.c.races[0].host.replace(/ \(.*/,''))} <span class="sub">${esc(x.c.races[0].venue)}</span>${x.approx?' <span class="ast" title="reconstructed from FIS results">*</span>':''}</td>${sl.map(l=>{const rc=x.byL[l];if(!rc)return '<td class="n">–</td>';const v=rc.teamPts[T]||0;const r=rc.teamRank.get(T);return `<td class="n">${p1(v)} <span class="sub">${r?'('+r+')':''}</span></td>`}).join('')}
+        <td class="n"><b>${p1(x.alp)}</b> <span class="sub">(${x.ar||'–'}/${x.nAlp})</span></td><td class="n">${x.overall?x.overall+'/'+x.nteams:'<span class="sub">'+(x.c.doc&&x.c.doc.notes&&x.c.doc.notes.length?'7th†':'–')+'</span>'}</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="note">${rows.some(x=>x.approx)?'<span class="ast">*</span> St. Lawrence carnival: results from FIS; Williams points as published by Williams, other teams reconstructed. † Williams recap. ':''}Source: Bullitt Timing team-score sheets.</p>
+    </section>
+    <div class="grid2 mt">
+    <section class="card gold"><h2>What the season shows</h2><ul class="obs">${obs.map(o=>`<li>${o}</li>`).join('')}</ul>
+    </section>
+    <section class="card"><h3>Points left on the hill, by race</h3>
+      <p class="note">Estimate: each DNF/DSQ placed at that racer's own median speed in the discipline, then the race re-scored. Not a result.</p>
+      <div class="tbl"><table><thead><tr><th>Race</th><th class="n">Scored</th><th class="n">Estimate</th><th>Who</th></tr></thead><tbody>
+      ${left.filter(x=>x.pl.gain>0.4).sort((a,b)=>b.pl.gain-a.pl.gain).slice(0,10).map(x=>`<tr><td>${dd(x.rc.date)} ${esc(x.rc.venue)} ${x.rc.disc}-${x.rc.gender}</td><td class="n">${p1(x.rc.teamPts[T]||0)}</td><td class="n">+${Math.round(x.pl.gain)}</td><td class="sub">${x.pl.used.map(u=>esc(u.name)+' '+u.st).join(', ')}</td></tr>`).join('')||'<tr><td colspan="4" class="sub">No estimate yet: needs DNFs by racers who have finished other races in that discipline.</td></tr>'}
+      </tbody></table></div>
+    </section></div>
+    <section class="card mt"><h2>Williams vs the league, race by race</h2>
+      <p class="note">Williams' points in each race against the top-scoring team and the median team. Lens: <b>${labelLens(S.lens)}</b>.</p>
+      ${lensSeg()}${teamBars()}
+    </section>`;
+}
+function teamBars(){
+  const T=TEAM();const list=seasonRaces().filter(rc=>lensOK(rc,S.lens));if(!list.length)return '';
+  const W=640,rowH=26,L=150,R=20,T0=10;const H=T0+list.length*rowH+24;
+  const mx=Math.max(50,...list.map(rc=>Math.max(...Object.values(rc.teamPts),0)));const X=v=>L+(W-L-R)*v/mx;
+  const ticks=[];for(let v=0;v<=mx;v+=25)ticks.push(v);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:820px" role="img" aria-label="Williams team points per race vs top and median team">
+  ${ticks.map(v=>`<line class="gridl" x1="${X(v)}" x2="${X(v)}" y1="${T0}" y2="${H-20}"/><text x="${X(v)}" y="${H-6}" text-anchor="middle">${v}</text>`).join('')}
+  ${list.map((rc,i)=>{const vals=Object.values(rc.teamPts);const top=Math.max(...vals,0),med=median(vals.concat(Array(Math.max(0,teamsInSeason().length-vals.length)).fill(0)))||0;const me=rc.teamPts[T]||0;const y=T0+i*rowH;
+    const topT=Object.entries(rc.teamPts).sort((a,b)=>b[1]-a[1])[0];
+    return `<text x="${L-8}" y="${y+16}" text-anchor="end">${dd(rc.date)} ${esc(rc.venue.split(' ')[0])} ${rc.disc}-${rc.gender}</text>
+    <rect x="${L}" y="${y+4}" width="${Math.max(1,X(top)-L)}" height="16" fill="var(--soft)"><title>Top team ${esc(topT?topT[0]:'')}: ${p1(top)}</title></rect>
+    <rect x="${L}" y="${y+8}" width="${Math.max(1,X(me)-L)}" height="8" fill="var(--eph)"><title>Williams: ${p1(me)} (rank ${rc.teamRank.get(T)||'–'})</title></rect>
+    <line x1="${X(med)}" x2="${X(med)}" y1="${y+2}" y2="${y+22}" stroke="var(--gold)" stroke-width="2"><title>Median team: ${p1(med)}</title></line>`}).join('')}
+  </svg><div class="legend"><span><span class="sw" style="background:var(--eph)"></span>Williams</span><span><span class="sw" style="background:var(--soft);border:1px solid var(--line)"></span>top team</span><span><span class="sw" style="background:var(--gold)"></span>median team</span></div>`;
+}
+function lensSeg(){return `<div class="controls"><div class="seg" role="group" aria-label="Leg">${LENSES.map(([l,n])=>`<button data-lens="${l}" aria-pressed="${S.lens===l}">${n}</button>`).join('')}</div></div>`}
+function labelLens(l){return (LENSES.find(x=>x[0]===l)||[l,l])[1]}
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+
+function vLeague(){
+  const T=TEAM();const st=standings(S.lens),idx=index(S.lens,S.weight);const carn=seasonCarnivals();
+  const alt=[0.6,0.7,0.8].map(w=>index(S.lens,w));const rk=(t,a)=>{const f=a.find(x=>x.team===t);return f?'#'+f.rank:'–'};
+  const leftByTeam={};seasonRaces().filter(rc=>lensOK(rc,S.lens)).forEach(rc=>Object.keys(rc.teamPts).concat(teamsInSeason()).forEach(t=>{}));
+  teamsInSeason().forEach(t=>{leftByTeam[t]=seasonRaces().filter(rc=>lensOK(rc,S.lens)).reduce((a,rc)=>a+pointsLeft(t,rc).gain,0)});
+  return `${lensSeg()}
+  <section class="card gold"><h2>Official EISA standings</h2>
+    <p class="note">Cumulative EISA points (the league's own scoring: 50, 47, 44, 41, 39 … for each place, best three per team per race). ${labelLens(S.lens)}, ${esc(S.season)}.${st.some(x=>x.approx)?' <span class="ast">*</span> includes the St. Lawrence carnival, reconstructed from FIS results.':''}</p>
+    <div class="tbl"><table><thead><tr><th class="n">#</th><th>Team</th><th class="n">Points</th>${carn.map(c=>`<th class="n" title="${esc(c.races[0].host)} · ${esc(c.races[0].venue)}">${esc(c.c)}</th>`).join('')}<th class="n">Left on hill</th></tr></thead><tbody>
+    ${st.map(x=>`<tr class="${x.team===T?'wil':''}"><td class="n">${x.rank}</td><td>${esc(tname(x.team))}</td><td class="n"><b>${p1(x.pts)}</b></td>${carn.map(c=>`<td class="n">${x.byC[c.c]!=null?p1(x.byC[c.c]):'–'}</td>`).join('')}<td class="n sub">≈${Math.round(leftByTeam[x.team]||0)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note">“Left on hill” is a model estimate, not a result: each DNF/DSQ placed at that racer's own median speed in the discipline, then re-scored.</p>
+  </section>
+  <section class="card eph mt"><h2>Speed × finish index</h2>
+    <p class="note">Score = ${Math.round(S.weight*100)}% speed + ${Math.round(100-S.weight*100)}% finishing. Speed: winner's time ÷ racer's time × 100, average of each team's best three per race (empty slots count 0). Finishing: share of starts that finished or made the run-2 cut.</p>
+    <div class="controls"><div class="seg" role="group" aria-label="Speed weighting">${[0.6,0.7,0.8].map(x=>`<button data-weight="${x}" aria-pressed="${S.weight===x}">${Math.round(x*100)}/${Math.round(100-x*100)}</button>`).join('')}</div><span class="sub">60/40 is the agreed default.</span></div>
+    <div class="tbl"><table><thead><tr><th class="n">#</th><th>Team</th><th class="n">Score</th><th class="n">Speed</th><th class="n">Clean</th><th class="n">Ranked</th><th class="n">Starts</th><th class="n">70/30</th><th class="n">80/20</th><th class="n">EISA</th></tr></thead><tbody>
+    ${idx.map(x=>`<tr class="${x.team===T?'wil':''}"><td class="n">${x.rank}</td><td>${esc(tname(x.team))}</td><td class="n"><b>${x.score.toFixed(1)}</b></td><td class="n">${x.speed.toFixed(1)}</td><td class="n">${x.finish.toFixed(0)}%</td><td class="n">${x.ranked.toFixed(0)}%</td><td class="n">${x.starts}</td><td class="n">${rk(x.team,alt[1])}</td><td class="n">${rk(x.team,alt[2])}</td><td class="n">${(st.find(y=>y.team===x.team)||{}).rank||'–'}</td></tr>`).join('')}
+    </tbody></table></div>
+  </section>
+  <section class="card mt"><h3>Speed vs finishing</h3><p class="note">Upper right is the target. Dashed lines are the league medians. Dot size shows starts.</p>${quadrant(idx)}</section>`;
+}
+function quadrant(res){
+  if(!res.length)return '';const T=TEAM();
+  const W=640,H=340,L=46,R=20,Tp=14,B=36;const xmin=Math.min(...res.map(x=>Math.floor(x.speed/5)*5)),xmax=Math.max(...res.map(x=>Math.ceil(x.speed/5)*5)),ymin=Math.min(...res.map(x=>Math.floor((x.finish-4)/10)*10)),ymax=100;
+  const X=v=>L+(W-L-R)*(v-xmin)/Math.max(1,xmax-xmin),Y=v=>Tp+(H-Tp-B)*(1-(v-ymin)/Math.max(1,ymax-ymin));
+  const mx=median(res.map(x=>x.speed)),my=median(res.map(x=>x.finish));const maxS=Math.max(...res.map(x=>x.starts));
+  const xt=[];for(let v=xmin;v<=xmax;v+=5)xt.push(v);const yt=[];for(let v=ymin;v<=ymax;v+=10)yt.push(v);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:820px" role="img" aria-label="Team speed index against clean-run rate">
+  ${xt.map(v=>`<line class="gridl" x1="${X(v)}" x2="${X(v)}" y1="${Tp}" y2="${H-B}"/><text x="${X(v)}" y="${H-B+16}" text-anchor="middle">${v}</text>`).join('')}
+  ${yt.map(v=>`<line class="gridl" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${v}%</text>`).join('')}
+  <line class="axis" x1="${X(mx)}" x2="${X(mx)}" y1="${Tp}" y2="${H-B}" stroke-dasharray="4 4"/><line class="axis" x1="${L}" x2="${W-R}" y1="${Y(my)}" y2="${Y(my)}" stroke-dasharray="4 4"/>
+  <text x="${W-R}" y="${Tp+12}" text-anchor="end">fast + finishes</text><text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle">speed index (best three per race, fastest = 100)</text>
+  ${(()=>{const placed=[];const lab=[...res].sort((a,b)=>Y(a.finish)-Y(b.finish)).map(x=>{const r=5+9*Math.sqrt(x.starts/maxS);const right=X(x.speed)>W-80;let ly=Y(x.finish)+4;const lx=right?X(x.speed)-r-3:X(x.speed)+r+3;
+      while(placed.some(p=>Math.abs(p.x-lx)<46&&Math.abs(p.y-ly)<12))ly+=12;placed.push({x:lx,y:ly});return {x,r,lx,ly,right}});
+    return res.map(x=>{const me=x.team===T;const c=me?'var(--eph)':'var(--muted)';const r=5+9*Math.sqrt(x.starts/maxS);return `<circle cx="${X(x.speed)}" cy="${Y(x.finish)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity="${me?.45:.15}" stroke="${c}" stroke-width="${me?2:1.2}"><title>${esc(tname(x.team))}: speed ${x.speed.toFixed(1)}, clean ${x.finish.toFixed(0)}%</title></circle>`}).join('')+
+      lab.map(({x,lx,ly,right})=>{const me=x.team===T;const c=me?'var(--eph)':'var(--ink)';return `<text x="${lx}" y="${ly}" text-anchor="${right?'end':'start'}" style="fill:${c};font-weight:${me?700:500}">${esc(x.team)}</text>`}).join('')})()}
+  </svg>`;
+}
+
+function vRacers(){
+  const list=teamRacers();if(!list.length)return empty('No Williams racers in this season yet.');
+  const sum=list.map(p=>{const rows=racerRows(p.key);const fin=rows.filter(x=>x.r.finished);const ro=rosterInfo(p.key);
+    return {...p,ro,starts:rows.length,fin:fin.length,clean:rows.filter(x=>x.r.clean).length,pts:rows.reduce((a,x)=>a+(x.r.pts||0),0),best:fin.length?Math.min(...fin.map(x=>x.r.place)):null,gap:avg(fin.map(x=>x.r.gap))}}).sort((a,b)=>b.pts-a.pts||b.fin-a.fin);
+  if(!S.racer||!sum.find(x=>x.key===S.racer))S.racer=sum[0].key;
+  const p=sum.find(x=>x.key===S.racer);
+  return `<section class="card eph"><h2>Ephs, ${esc(S.season)}</h2>
+    <p class="note">Every Williams starter this season. Tap a row for the race-by-race card. “2026-27” marks racers on the current roster.</p>
+    <div class="tbl"><table><thead><tr><th>Racer</th><th></th><th class="n">Starts</th><th class="n">Finished</th><th class="n">Clean</th><th class="n">Best place</th><th class="n">Avg behind</th><th class="n">EISA pts</th></tr></thead><tbody>
+    ${sum.map(x=>`<tr data-racer="${esc(x.key)}" class="${x.key===S.racer?'wil me':''}"><td>${esc(x.name)} <span class="sub">${x.gender==='W'?'W':'M'}</span></td><td>${x.ro?`<span class="pill eph">2026-27${x.ro.year?' · '+esc(x.ro.year):''}</span>`:'<span class="pill">not on 2026-27 roster</span>'}</td><td class="n">${x.starts}</td><td class="n">${x.fin}</td><td class="n">${Math.round(100*x.clean/x.starts)}%</td><td class="n">${x.best?ordinal(x.best):'–'}</td><td class="n">${pct(x.gap)}</td><td class="n"><b>${p1(x.pts)}</b></td></tr>`).join('')}
+    </tbody></table></div></section>
+    ${racerCard(p)}`;
+}
+function racerCard(p){
+  const rows=racerRows(p.key);const fin=rows.filter(x=>x.r.finished);
+  const two=fin.filter(x=>x.r.r1_gap!=null&&x.r.r2_gap!=null);const r2b=two.filter(x=>x.r.r2_gap<x.r.r1_gap).length;
+  const obs=[];
+  if(two.length>=2)obs.push(`Run 2 was closer to the fastest run than run 1 in ${r2b} of ${two.length} finished races (average ${pct(avg(two.map(x=>x.r.r1_gap)))} in run 1 vs ${pct(avg(two.map(x=>x.r.r2_gap)))} in run 2). Conditions are documented for only a few races, so this is the pattern, not its cause.`);
+  ['SL','GS'].forEach(d=>{const r=rows.filter(x=>x.rc.disc===d);if(!r.length)return;const f=r.filter(x=>x.r.finished);const dnf=r.filter(x=>/DNF|DSQ/.test(x.r.st||'')).length,dnq=r.filter(x=>x.r.st==='DNQ').length;
+    obs.push(`${d}: ${f.length} of ${r.length} finished${dnq?`, ${dnq} missed the run-2 cut`:''}${dnf?`, ${dnf} DNF/DSQ`:''}.${f.length?` Median ${pct(median(f.map(x=>x.r.gap)))} behind the winner; best ${ordinal(Math.min(...f.map(x=>x.r.place)))} at ${esc(f.reduce((b,x)=>x.r.place<b.r.place?x:b).rc.venue)}.`:''}`)});
+  return `<section class="card mt"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><h2>${esc(p.name)}</h2>${p.ro?`<span class="pill eph">2026-27 roster${p.ro.year?' · '+esc(p.ro.year):''}</span>`:''}</div>
+    <div class="stats">
+      <div class="stat"><div class="v">${rows.length}</div><div class="k">carnival starts</div></div>
+      <div class="stat"><div class="v">${fin.length}</div><div class="k">finished both runs</div></div>
+      <div class="stat"><div class="v">${p1(rows.reduce((a,x)=>a+(x.r.pts||0),0))}</div><div class="k">EISA points</div></div>
+      <div class="stat"><div class="v">${fin.length?pct(median(fin.map(x=>x.r.gap))):'–'}</div><div class="k">median behind winner</div></div>
+    </div>
+    ${trend(rows)}
+    <div class="tbl"><table><thead><tr><th>Date</th><th>Race</th><th class="n">Run 1</th><th class="n">R1 gap</th><th class="n">Run 2</th><th class="n">R2 gap</th><th class="n">Place</th><th class="n">Behind</th><th class="n">Pts</th><th>R1→R2</th></tr></thead><tbody>
+    ${rows.map(({rc,r})=>`<tr><td>${dd(rc.date)}</td><td><a href="#races" data-race="${esc(rc.id)}">${esc(rc.venue)} ${rc.disc}</a></td>
+      <td class="n">${r.r1!=null?fmtT(r.r1)+' <span class="sub">('+r.r1_rank+')</span>':''}</td><td class="n">${r.r1_gap!=null?pct(r.r1_gap):''}</td>
+      <td class="n">${r.r2!=null?fmtT(r.r2)+' <span class="sub">('+r.r2_rank+')</span>':''}</td><td class="n">${r.r2_gap!=null?pct(r.r2_gap):''}</td>
+      <td class="n">${r.finished?r.place+'/'+rc.eisaFinishers:esc(r.st)}</td><td class="n">${r.finished?pct(r.gap):''}</td><td class="n">${r.pts?p1(r.pts):''}</td>
+      <td>${r.gained==null?'':`<span class="pill ${r.gained>0?'up':r.gained<0?'down':''}">${r.gained>0?'+':''}${r.gained}</span>`}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note">Run ranks and gaps are among racers who finished both runs (the timing sheets publish run times for finishers only). Place counts EISA finishers; non-EISA guests are left out.</p>
+    <h3 style="margin-top:14px">What the season shows</h3><ul class="obs">${obs.map(o=>`<li>${o}</li>`).join('')}</ul></section>`;
+}
+function trend(rows){
+  const pts=rows.filter(x=>x.r.finished);if(pts.length<2)return '';
+  const W=600,H=170,L=40,R=24,T=12,B=26;const mx=Math.max(5,Math.ceil(Math.max(...pts.map(x=>x.r.gap))/5)*5);
+  const X=i=>L+(W-L-R)*i/(pts.length-1);const Y=v=>T+(H-T-B)*(v/mx);const ticks=[];for(let v=0;v<=mx;v+=mx>20?10:5)ticks.push(v);
+  const line=pts.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(p.r.gap).toFixed(1)}`).join('');
+  return `<div class="label">% behind the winner, finished races (higher on the chart is better)</div>
+  <svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:760px" role="img" aria-label="Percent behind the winner by race">
+  ${ticks.map(v=>`<line class="gridl" x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end">${v}%</text>`).join('')}
+  <path d="${line}" fill="none" stroke="var(--eph)" stroke-width="2"/>
+  ${pts.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.r.gap)}" r="4.5" fill="${p.rc.disc==='SL'?'var(--panel)':'var(--eph)'}" stroke="var(--eph)" stroke-width="2"><title>${esc(p.rc.venue)} ${p.rc.disc} ${dd(p.rc.date)}: ${pct(p.r.gap)}, ${ordinal(p.r.place)}</title></circle><text x="${X(i)}" y="${H-8}" text-anchor="middle">${dd(p.rc.date)}</text>`).join('')}
+  </svg><div class="legend"><span><span class="sw" style="background:var(--eph)"></span>GS</span><span><span class="sw" style="border:2px solid var(--eph);background:var(--panel)"></span>SL</span></div>`;
+}
+
+function vRaces(){
+  const T=TEAM();const list=seasonRaces();if(!list.length)return empty('No races in this season yet.');
+  if(!S.raceId||!list.find(r=>r.id===S.raceId))S.raceId=list[list.length-1].id;
+  const rc=list.find(r=>r.id===S.raceId);const fin=rc.R.filter(r=>r.finished).sort((a,b)=>a.tot-b.tot);
+  const eis=fin.filter(r=>!r.guest);const second=eis[1],tenth=eis[9];const c=rc.course||{};
+  const others=rc.R.filter(r=>!r.finished&&r.st!=='DNS1');
+  const tp=Object.entries(rc.teamPts).sort((a,b)=>b[1]-a[1]);
+  const movers=fin.filter(r=>r.gained!=null);const up=[...movers].sort((a,b)=>b.gained-a.gained).slice(0,5),down=[...movers].sort((a,b)=>a.gained-b.gained).slice(0,5);
+  const pl=pointsLeft(T,rc);
+  return `<div class="controls"><label class="label" for="racepick">Race</label><select id="racepick">${list.map(r=>`<option value="${esc(r.id)}" ${r.id===rc.id?'selected':''}>${dd(r.date)} · ${esc(r.host.replace(/ \(.*/,''))} carnival · ${esc(r.venue)} ${r.disc} ${gName(r.gender)}</option>`).join('')}</select></div>
+  <section class="card eph"><h2>${esc(rc.venue)} ${discName(rc.disc)} · ${gName(rc.gender)}</h2>
+    <div class="sub">${esc(rc.host)} carnival · ${new Date(rc.date+'T12:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})} · <a href="${esc(rc.source)}" target="_blank" rel="noopener">official results</a>${rc.points_official?'':' · <span class="ast">points partly reconstructed</span>'}</div>
+    <div class="racehead">
+      <div class="stat"><div class="k">Winner</div><div class="v" style="font-size:21px">${rc.winner?esc(rc.winner.name):'–'}</div><div class="k">${rc.winner?esc(tname(rc.winner.team))+' · '+fmtT(rc.winner.tot):''}</div></div>
+      <div class="stat"><div class="k">Margin to 2nd</div><div class="v">${second?pct(second.gap):'–'}</div><div class="k">${second?second.gap_s.toFixed(2)+' s':''}</div></div>
+      <div class="stat"><div class="k">10th behind</div><div class="v">${tenth?pct(tenth.gap):'–'}</div><div class="k">${tenth?tenth.gap_s.toFixed(2)+' s':''}</div></div>
+      <div class="stat"><div class="k">Finished</div><div class="v">${rc.finishers}/${rc.starters}</div><div class="k">${Math.round(100*rc.finishers/Math.max(1,rc.starters))}% of starters</div></div>
+      <div class="stat"><div class="k">Williams</div><div class="v">${p1(rc.teamPts[T]||0)}</div><div class="k">${rc.teamRank.get(T)?ordinal(rc.teamRank.get(T))+' of '+tp.length+' teams':'no points'}${pl.gain>0.4?' · ≈'+Math.round(pl.gain)+' left on hill':''}</div></div>
+      <div class="stat"><div class="k">Course</div><div class="v" style="font-size:21px">${c.vertical_m?c.vertical_m+' m':'–'}</div><div class="k">${c.vertical_m?'vertical · gates '+esc(c.gates||''):'not published'}</div></div>
+    </div>
+    ${rc.conditions?`<p class="note"><b>Conditions (documented):</b> ${esc(rc.conditions)} · <a href="${esc(rc.conditions_source)}" target="_blank" rel="noopener">source</a></p>`:'<p class="note">No conditions documented for this race, so run-to-run changes are shown without explanation.</p>'}
+    ${(rc.notes||[]).length?`<ul class="obs">${rc.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+    <div class="label" style="margin-top:12px">% behind the winner, every finisher (Williams in purple)</div>${gapBars(fin)}
+  </section>
+  <div class="grid2 mt">
+    <section class="card gold"><h3>Team points, this race</h3><div class="tbl"><table><thead><tr><th class="n">#</th><th>Team</th><th class="n">Points</th><th>Scorers</th></tr></thead><tbody>
+      ${tp.map(([t,v])=>`<tr class="${t===T?'wil':''}"><td class="n">${rc.teamRank.get(t)}</td><td>${esc(tname(t))}</td><td class="n">${p1(v)}</td><td class="sub">${rc.R.filter(r=>r.team===t&&r.pts).map(r=>esc(r.name.split(' ').slice(-1)[0])+' '+p1(r.pts)).join(', ')}</td></tr>`).join('')}
+    </tbody></table></div></section>
+    <section class="card"><h3>Run 2 movers</h3><p class="note">Place after run 1 among finishers → final place.</p>
+      <div class="tbl"><table><tbody>${up.concat(down.filter(d=>!up.includes(d))).map(r=>`<tr class="${r.team===T?'wil':''}"><td>${esc(r.name)}</td><td>${esc(r.team)}</td><td><span class="pill ${r.gained>0?'up':r.gained<0?'down':''}">${r.gained>0?'+':''}${r.gained}</span></td></tr>`).join('')}</tbody></table></div></section>
+  </div>
+  <section class="card mt"><h3>Full results</h3><div class="tbl"><table><thead><tr><th class="n">Pl</th><th class="n">Bib</th><th>Racer</th><th>Team</th><th class="n">Run 1</th><th class="n">R1 gap</th><th class="n">Run 2</th><th class="n">R2 gap</th><th class="n">Total</th><th class="n">Behind</th><th class="n">Pts</th><th>R1→R2</th></tr></thead><tbody>
+  ${[...fin,...others].map(r=>`<tr class="${r.team===T?'wil':''}"><td class="n">${r.finished?(r.guest?'<span class="sub">g</span>':r.place):''}</td><td class="n">${esc(r.bib)}</td><td>${esc(r.name)}</td><td>${esc(r.team)}${r.ns?' <span class="sub">NS</span>':''}</td>
+    <td class="n">${r.r1!=null?fmtT(r.r1):''}</td><td class="n">${r.r1_gap!=null?pct(r.r1_gap):''}</td><td class="n">${r.r2!=null?fmtT(r.r2):''}</td><td class="n">${r.r2_gap!=null?pct(r.r2_gap):''}</td>
+    <td class="n">${r.finished?fmtT(r.tot):esc(r.st)}</td><td class="n">${r.finished?pct(r.gap):''}</td><td class="n">${r.pts?p1(r.pts):''}</td><td>${r.gained==null?'':`<span class="pill ${r.gained>0?'up':r.gained<0?'down':''}">${r.gained>0?'+':''}${r.gained}</span>`}</td></tr>`).join('')}
+  </tbody></table></div><p class="note">NS = non-scoring entry. g = non-EISA guest (no place, no points). DNQ = finished run 1 outside the run-2 cut.</p></section>`;
+}
+function gapBars(fin){
+  if(!fin.length)return '';const T=TEAM();const W=600,rowH=11,L=30,Tp=6;const H=Tp+fin.length*rowH+18;const mx=Math.max(5,Math.ceil(Math.max(...fin.map(r=>r.gap))/5)*5);
+  const X=v=>L+(W-L-150)*v/mx;const ticks=[];for(let v=0;v<=mx;v+=mx>20?5:2)ticks.push(v);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:760px" role="img" aria-label="Percent behind the winner for each finisher">
+  ${ticks.map(v=>`<line class="gridl" x1="${X(v)}" x2="${X(v)}" y1="${Tp}" y2="${H-16}"/><text x="${X(v)}" y="${H-3}" text-anchor="middle">${v}%</text>`).join('')}
+  ${fin.map((r,i)=>{const me=r.team===T;const c=me?'var(--eph)':'var(--other)';
+    return `<rect x="${L}" y="${Tp+i*rowH+1}" width="${Math.max(1,X(r.gap)-L).toFixed(1)}" height="${rowH-3}" fill="${c}"><title>${esc(r.name)} (${esc(r.team)}) ${pct(r.gap)}</title></rect>${me?`<text x="${X(r.gap)+4}" y="${Tp+i*rowH+rowH-2}" style="fill:var(--eph);font-weight:700">${esc(r.name)} · ${r.guest?'':ordinal(r.place)}</text>`:''}`}).join('')}
+  </svg>`;
+}
+
+function vCourses(){
+  const list=seasonRaces();
+  return `<section class="card"><h2>Course library</h2><p class="note">Start and finish altitude, vertical drop and gates per run come from each race's FIS result page. Data is kept per race because the same venue can use different trails.</p>
+  <div class="tbl"><table><thead><tr><th>Date</th><th>Carnival</th><th>Venue</th><th>Race</th><th class="n">Start</th><th class="n">Finish</th><th class="n">Vertical</th><th>Gates</th><th class="n">Winner</th><th class="n">Finished</th><th>Conditions</th></tr></thead><tbody>
+  ${list.map(rc=>{const c=rc.course||{};return `<tr><td>${dd(rc.date)}</td><td>${esc(rc.carnival)}</td><td>${esc(rc.venue)}</td><td>${rc.disc}-${rc.gender}</td><td class="n">${c.start_m||'–'}</td><td class="n">${c.finish_m||'–'}</td><td class="n">${c.vertical_m?c.vertical_m+' m':'–'}</td><td>${esc(c.gates||'')}${c.length_m?' · '+c.length_m+' m long':''}</td><td class="n">${rc.winner?fmtT(rc.winner.tot):''}</td><td class="n">${Math.round(100*rc.finishers/Math.max(1,rc.starters))}%</td><td class="sub">${esc(rc.conditions||'')}</td></tr>`}).join('')}
+  </tbody></table></div></section>`;
+}
+function vMethod(){
+  return `<div class="grid2"><section class="card"><h2>How the numbers work</h2><ul class="obs">
+   <li><b>EISA points</b> (the league's official scoring): 50, 47, 44, 41, 39, 37, 35, 33, 31, then 30 down by one per place. Only a team's best three finishers score; a fourth finisher and non-scoring (NS) entries take no points slot. Ties share the points. Computed team points match the official Bullitt Timing team sheets for all 20 races they cover.</li>
+   <li><b>Standings</b>: cumulative EISA points per team, per leg (women SL, women GS, men SL, men GS) and all alpine.</li>
+   <li><b>Speed index</b>: winning total time ÷ racer's total time × 100. A team's race score is the average of its best three; empty slots count as zero, so depth matters.</li>
+   <li><b>Clean runs</b>: starts that finished both runs or finished run 1 outside the run-2 cut (DNQ). <b>Ranked</b>: finished both runs.</li>
+   <li><b>Speed × finish index</b>: 60% speed + 40% clean runs, the default agreed for both weekly apps; 70/30 and 80/20 ranks are shown for comparison. Teams need six starts in the leg.</li>
+   <li><b>Points left on the hill</b>: an estimate. Each DNF or DSQ is placed at that racer's own median speed index in the same discipline this season (racers with no finished race in that discipline are skipped), and the race is re-scored. It shows what clean skiing would have been worth, not a result.</li>
+   <li><b>% behind</b>: (time ÷ winner's time − 1) × 100, per run and total. Run gaps compare with the fastest run among finishers.</li>
+   <li>Run-to-run changes are explained only when conditions are documented for that race; otherwise they are shown without a cause.</li>
+  </ul></section>
+  <section class="card"><h2>Data</h2><p class="note">One record per race with every starter's run times, team and EISA points, from Bullitt Timing result sheets (data.bullitttiming.com). The St. Lawrence carnival was not posted there, so its results come from the FIS race pages. Course data from FIS. A weekly update adds new carnivals each Monday from January 2027. Data files: <a href="data/races.json">races</a>, <a href="data/carnivals.json">carnivals</a>.</p>
+  <div class="stats"><div class="stat"><div class="v">${seasonRaces().length}</div><div class="k">races this season</div></div><div class="stat"><div class="v">${seasonRaces().reduce((a,r)=>a+r.R.length,0)}</div><div class="k">starter results</div></div><div class="stat"><div class="v">${seasonCarnivals().length}</div><div class="k">carnivals</div></div></div>
+  <button class="primary" id="dl">Download Excel workbook</button> <span class="sub" id="dlmsg"></span>
+  <h3 style="margin-top:16px">Known gaps</h3><ul class="obs"><li>Run times are published for finishers only; DNQ and DNF racers have no run-1 time in the source sheets.</li><li>St. Lawrence carnival: points for teams other than Williams are reconstructed and may be off by a point where NS entries are unmarked.</li><li>Conditions are documented for three races (Williams and Middlebury carnivals).</li><li>NCAA Championships are outside the carnival standings.</li></ul></section></div>`;
+}
+function empty(t){return `<div class="empty">${esc(t)}</div>`}
+
+/* ---------- render ---------- */
+const ROUTES={team:vTeam,league:vLeague,racers:vRacers,races:vRaces,courses:vCourses,method:vMethod};
+function route(){const h=(location.hash||'#team').slice(1);return ROUTES[h]?h:'team'}
+function render(){
+  const r=route();document.querySelectorAll('nav.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+r?'page':'false'));
+  if(!S.loaded)return;
+  if(!S.races.length){$('#view').innerHTML=empty('No races have been added yet. Once a carnival is added, standings, the index and the Ephs appear here.');return}
+  $('#view').innerHTML=ROUTES[r]();
+}
+document.addEventListener('click',e=>{
+  const tr=e.target.closest('tr[data-racer]');if(tr){S.racer=tr.dataset.racer;render();return}
+  const b=e.target.closest('button,a[data-race]');if(!b)return;
+  if(b.dataset.lens){S.lens=b.dataset.lens;render()}
+  else if(b.dataset.weight){S.weight=+b.dataset.weight;render()}
+  else if(b.dataset.race){S.raceId=b.dataset.race}
+  else if(b.id==='dl'){download()}
+});
+document.addEventListener('change',e=>{if(e.target.id==='racepick'){S.raceId=e.target.value;render()}if(e.target.id==='season'){S.season=e.target.value;render()}});
+window.addEventListener('hashchange',render);
+function seasons(){const s=[...new Set(S.races.map(r=>r.season))].sort();$('#season').innerHTML=s.map(x=>`<option ${x===S.season?'selected':''}>${esc(x)}</option>`).join('')}
+
+async function download(){
+  const msg=$('#dlmsg');
+  try{
+    if(!window.XLSX){msg.textContent='The Excel library did not load.';return}
+    const wb=XLSX.utils.book_new();const races=S.races.slice().sort((a,b)=>a.date.localeCompare(b.date));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(races.map(r=>({race_id:r.id,season:r.season,carnival:r.carnival,host:r.host,date:r.date,venue:r.venue,discipline:r.disc,gender:r.gender,starters:r.starters,finishers:r.finishers,winner:r.winner?r.winner.name:'',winner_team:r.winner?r.winner.team:'',winning_time:r.winner?fmtT(r.winner.tot):'',vertical_m:(r.course||{}).vertical_m||'',gates:(r.course||{}).gates||'',points_official:r.points_official,conditions:r.conditions||'',source:r.source}))),'Races');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(races.flatMap(rc=>rc.R.map(r=>({race_id:rc.id,date:rc.date,venue:rc.venue,discipline:rc.disc,gender:rc.gender,bib:r.bib,name:r.name,team:r.team,non_scoring:r.ns?'yes':'',
+      run1:r.r1??'',run1_rank:r.r1_rank??'',run1_gap_pct:r.r1_gap!=null?+r.r1_gap.toFixed(2):'',run2:r.r2??'',run2_rank:r.r2_rank??'',run2_gap_pct:r.r2_gap!=null?+r.r2_gap.toFixed(2):'',
+      total:r.finished?fmtT(r.tot):'',total_s:r.tot??'',status:r.status,eisa_place:r.place??'',gap_pct:r.gap!=null?+r.gap.toFixed(2):'',speed_index:r.speed!=null?+r.speed.toFixed(2):'',eisa_points:r.pts??'',places_gained_run2:r.gained??''})))),'Results');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(races.flatMap(rc=>Object.entries(rc.teamPts).map(([t,v])=>({race_id:rc.id,date:rc.date,venue:rc.venue,discipline:rc.disc,gender:rc.gender,team:t,points:v,rank:rc.teamRank.get(t)})))),'Team points');
+    const keep=S.season,st=[],ix=[];[...new Set(races.map(r=>r.season))].forEach(se=>{S.season=se;LENSES.forEach(([l,n])=>{standings(l).forEach(x=>st.push({season:se,leg:n,rank:x.rank,team:x.team,points:x.pts}));index(l,0.6).forEach(x=>ix.push({season:se,leg:n,rank_60_40:x.rank,team:x.team,score:+x.score.toFixed(1),speed:+x.speed.toFixed(1),clean_pct:+x.finish.toFixed(1),ranked_pct:+x.ranked.toFixed(1),starts:x.starts}))})});S.season=keep;
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(st),'Standings');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ix),'Speed x finish');
+    const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const url=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));const a=document.createElement('a');a.href=url;a.download='Williams EISA alpine data.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);msg.textContent='Downloaded.';
+  }catch(e){msg.textContent=e&&e.code==='declined'?'Download cancelled.':'The workbook could not be saved here.'}
+}
+
+/* ---------- data ---------- */
+(async function(){
+  render();const status=$('#status');
+  try{
+    const get=f=>fetch('data/'+f+'?v='+Date.now()).then(r=>{if(!r.ok)throw new Error(f);return r.json()});
+    const [races,carn,cfg]=await Promise.all([get('races.json'),get('carnivals.json'),get('config.json')]);
+    S.config=cfg;S.carnivals=carn;S.races=races.map(computeRace);
+    const ss=[...new Set(S.races.map(r=>r.season))].sort();S.season=ss[ss.length-1]||null;
+    S.loaded=true;seasons();
+    const last=S.races.map(r=>r.date).sort().pop();
+    status.textContent=S.races.length?`${S.races.length} races · latest ${last?dd(last)+' '+last.slice(0,4):''}`:'No races yet';
+    render();
+  }catch(e){status.textContent='The race data could not be loaded.';S.loaded=true;render()}
+})();
+})();
+</script>
+</body>
+</html>
